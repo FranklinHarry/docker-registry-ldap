@@ -1,0 +1,31 @@
+version: '2'
+services:
+  registry:
+    image: "registry:2.5"
+    volumes:
+     - ./config.yml:/etc/docker/registry/config.yml
+     - ./letsencrypt:/letsencrypt
+     - {{ cert_path }}:/certs:ro
+    restart: always
+    networks:
+      - default
+      - nginx
+    environment:
+      VIRTUAL_HOST: {{ virtual_host }}
+      LETSENCRYPT_HOST: {{ letsencrypt_host }}
+      LETSENCRYPT_EMAIL: {{ letsencrypt_email }}
+  auth:
+    image: cesanta/docker_auth:stable
+    volumes:
+      - ./auth_logs:/logs
+      - ./auth:/config:ro
+      - {{ cert_path }}:/certs:ro
+    command: --v=2 --alsologtostderr /config/auth_config.yml
+    ports:
+      - 5001:5001
+    networks:
+      - default
+networks:
+  default: {}
+  nginx:
+      external: true

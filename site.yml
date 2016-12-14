@@ -1,0 +1,47 @@
+---
+- name: Deploy Docker Registry
+  hosts: all
+  remote_user: ubuntu
+  vars:
+    cert_path: "~/nginx/certs"
+    target_base_directory: "/home/{{ ansible_user_id }}/docker-registry"
+  tasks:
+    - name: Include Secrets
+      include_vars: vars/secrets.yml
+    - name: Make Directory
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - "{{ target_base_directory }}"
+        - "{{ target_base_directory }}/auth"
+        - "{{ target_base_directory }}/letsencrypt"
+    - name: Copy Files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ target_base_directory }}/{{ item }}"
+      with_items:
+        - auth/
+    - name: Copy docker-compose
+      template:
+        src: docker-compose.template.yml
+        dest: "{{ target_base_directory }}/docker-compose.yml"
+    - name: Copy Configuration
+      template:
+        src: config.template.yml
+        dest: "{{ target_base_directory }}/config.yml"
+    - name: Copy Auth Configuration
+      template:
+        src: auth/auth_config.template.yml
+        dest: "{{ target_base_directory }}/auth/auth_config.yml"
+    - name: Write LDAP Bind password
+      copy:
+        content: "{{ ldap.bind_password }}"
+        dest: "{{ target_base_directory }}/auth/bind_pw.txt"
+    - name: Stop and Start Docker Compose
+      docker_service:
+        project_src: "{{ target_base_directory }}"
+        state: "{{ item }}"
+      with_items:
+      - absent
+      - present

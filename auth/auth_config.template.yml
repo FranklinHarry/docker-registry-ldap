@@ -1,0 +1,58 @@
+# . See reference.yml for explanation for explanation of all options.
+#
+#  auth:
+#    token:
+#      realm: "https://127.0.0.1:5001/auth"
+#      service: "Docker registry"
+#      issuer: "Acme auth server"
+#      rootcertbundle: "/path/to/server.pem"
+
+server:
+  addr: ":5001"
+  certificate: "/certs/{{ tls_cert_host }}.crt"
+  key: "/certs/{{ tls_cert_host }}.key"
+
+token:
+  issuer: "Acme auth server"  # Must match issuer in the Registry config.
+  expiration: 900
+
+# LDAP authentication.
+# Authentication is performed by first binding to the server, looking up the user entry
+# by using the specified filter, and then re-binding using the matched DN and the password provided.
+ldap_auth:
+  addr: "{{ ldap.address }}"
+  #tls: true
+  # In case bind DN and password is required for querying user information,
+  # specify them here. Plain text password is read from the file.
+  bind_dn: "{{ ldap.bind_dn }}"
+  # Make sure you remove newlines and carriage returns from the password file.
+  bind_password_file: /config/bind_pw.txt
+  # User query settings. ${account} is expanded from auth request
+  base: "{{ ldap.base }}"
+  filter: "(uid=${account})"
+
+users:
+  # Password is specified as a BCrypt hash. Use htpasswd -B to generate.
+  # "admin":
+  #   password: "$2y$05$LO.vzwpWC5LZGqThvEfznu8qhb5SGqvBSWY1J3yZ4AxtMRZ3kN5jC"  # badmin
+  # "test":
+  #   password: "$2y$05$WuwBasGDAgr.QCbGIjKJaep4dhxeai9gNZdmBnQXqpKly57oNutya"  # 123
+
+acl:
+  # Admin has full access to everything.
+  - match: {account: "admin"}
+    actions: ["*"]
+
+  # User "user" can pull stuff.
+  # - match: {account: "test"}
+  #   actions: ["pull"]
+
+  # This will allow authenticated users to pull/push
+  - match:
+      account: /.+/
+    actions: ['*']
+
+  # The user "serviceaccount" (from LDAP) may not perform any docker actions
+  # like push or pull.
+  # - match: {account: "serviceaccount"}
+  #   actions: []
