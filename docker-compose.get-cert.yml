@@ -1,0 +1,15 @@
+version: '2'
+services:
+  auth:
+    image: nginx:alpine
+    environment:
+      VIRTUAL_HOST: {{ virtual_host_acme }}
+      LETSENCRYPT_HOST: {{ letsencrypt_host_acme }}
+      LETSENCRYPT_EMAIL: {{ letsencrypt_email }}
+    expose:
+      - "80"
+    networks:
+      - nginx
+networks:
+  nginx:
+      external: true

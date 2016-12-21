@@ -1,1 +1,3 @@
 *.retry
+vars/secrets.yml
+inventory

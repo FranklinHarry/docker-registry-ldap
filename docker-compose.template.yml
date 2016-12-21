@@ -21,10 +21,15 @@ services:
       - ./auth:/config:ro
       - {{ cert_path }}:/certs:ro
     command: --v=2 --alsologtostderr /config/auth_config.yml
-    ports:
-      - 5001:5001
+    expose:
+      - "5001"
     networks:
       - default
+      - nginx
+    environment:
+      VIRTUAL_HOST: {{ virtual_host_acme }}
+      LETSENCRYPT_HOST: {{ letsencrypt_host_acme }}
+      LETSENCRYPT_EMAIL: {{ letsencrypt_email }}
 networks:
   default: {}
   nginx:

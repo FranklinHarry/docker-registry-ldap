@@ -9,12 +9,12 @@
 
 server:
   addr: ":5001"
-  certificate: "/certs/{{ tls_cert_host }}.crt"
-  key: "/certs/{{ tls_cert_host }}.key"
 
 token:
   issuer: "Acme auth server"  # Must match issuer in the Registry config.
   expiration: 900
+  certificate: "/certs/{{ tls_cert_host_acme }}.crt"
+  key: "/certs/{{ tls_cert_host_acme }}.key"
 
 # LDAP authentication.
 # Authentication is performed by first binding to the server, looking up the user entry
